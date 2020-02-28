@@ -1,24 +1,200 @@
+<?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <data>
-<!--
-        <template id="listing">
-          <ul>
-            <li t-foreach="objects" t-as="object">
-              <a t-attf-href="#{ root }/objects/#{ object.id }">
-                <t t-esc="object.display_name"/>
-              </a>
-            </li>
-          </ul>
-        </template>
-        <template id="object">
-          <h1><t t-esc="object.display_name"/></h1>
-          <dl>
-            <t t-foreach="object._fields" t-as="field">
-              <dt><t t-esc="field"/></dt>
-              <dd><t t-esc="object[field]"/></dd>
+
+
+    <template id="portal_my_home" name="My Portal">
+        <t t-call="portal.portal_layout">
+            <t t-set="my_details" t-value="True"/>
+            <div class="o_portal_my_home">
+                <div class="oe_structure" id="oe_structure_portal_my_home_1"/>
+                <h3>Documents</h3>
+             <t t-foreach="partners" t-as="partner">
+                <a class="list-group-item list-group-item-action d-flex align-items-center justify-content-between"
+                   t-attf-href="/my/{{ slug(partner) }}" title="Sessions">Sessions
+                   <span class="badge badge-secondary badge-pill">
+                       <t t-esc="partner.num_ses"/>
+                   </span>
+                </a>
+             </t>
+
+                <div class="o_portal_docs list-group">
+                </div>
+            </div>
+            <div class="oe_structure" id="oe_structure_portal_my_home_2"/>
+        </t>
+
+    </template>
+
+    <template id="portal_session" name="Partner Session">
+        <t t-call="portal.portal_layout">
+
+
+            <t t-set="breadcrumbs_searchbar" t-value="True"/>
+
+              <t t-call="portal.portal_searchbar">
+                <div class="col">
+                    <li class="breadcrumb-item ">
+                        Sessions
+                    </li>
+                </div>
             </t>
-          </dl>
-        </template>
--->
-    </data>
+
+            <t t-call="portal.portal_table">
+                <thead>
+                    <tr>
+                        <th class="w-50">Identifiant</th><th/>
+                        <th class="w-50">Name</th><th/>
+
+
+                    </tr>
+                </thead>
+                <t t-foreach="session" t-as="session">
+                    <tr>
+                        <td><a t-attf-href="/my/session/#{session.id}"><small>#</small><span t-field="session.id"/></a></td><td/>
+                        <td><a t-attf-href="/my/session/#{session.id}"><span t-field="session.name"/></a></td><td/>
+
+                    </tr>
+                </t>
+            </t>
+        </t>
+    </template>
+
+
+
+
+
+
+
+
+    <template id="session_details" name="Sessions details">
+        <t t-set="breadcrumbs_searchbar" t-value="True"/>
+
+
+        <t t-call="portal.portal_layout">
+ <div class="list-group-item list-group-item-action d-flex align-items-center justify-content-between"
+                    title="Sessions">
+            <div class="col">
+
+                <ol class="o_portal_submenu breadcrumb mb-0 py-2 flex-grow-1">
+                    <li class="breadcrumb-item" ><a href="/my/home" aria-label="Home" title="Home"><i class="fa fa-home"></i></a></li>
+
+                    <li class="breadcrumb-item ">
+                                            <a href="">Sessions</a>
+                                        </li>
+                                    </ol>
+
+            </div>
+ </div>
+            <t t-set="wrapwrap_classes" t-value="'o_portal_bg_dark'"/>
+
+            <t t-set="o_portal_fullwidth_alert" groups="helpdesk.group_helpdesk_user">
+                <t t-call="portal.portal_back_in_edit_mode">
+                    <t t-set="backend_url" t-value="'/web#model=helpdesk.ticket&amp;id=%s&amp;view_type=form' % (session.id)"/>
+                </t>
+            </t>
+
+            <t t-call="portal.portal_record_layout">
+                <t t-set="card_header">
+                    <div class="row no-gutters">
+                        <div class="col-md">
+                            <h5 class="mb-1 mb-md-0">
+                                <span t-field="session.name"/>
+                                <small class="text-muted"> (#<span t-field="session.id"/>)</small>
+                            </h5>
+
+                           <a role="button" t-attf-href="/my/session/edit/{{ slug(session) }}" class="btn btn-sm btn-link"><i class="fa fa-pencil"/> Edit</a>
+
+                        </div>
+
+                    </div>
+                </t>
+                <t t-set="card_body">
+                    <div class="row mb-4">
+                        <strong class="col-lg-2">Identifiant</strong>
+                        <span class="col-lg-10" t-field="session.id" />
+                    </div>
+                    <div class="row mb-4" >
+                        <strong class="col-lg-2">Name</strong>
+                        <span class="col-lg-10">
+
+                                <span t-field="session.name"/>
+
+                        </span>
+                    </div>
+                    <div class="row mb-4">
+                        <strong class="col-lg-2">Duration</strong>
+                        <span class="col-lg-10">
+
+                                <span t-field="session.duration"/>
+
+                        </span>
+                    </div>
+                    <div class="row mb-4">
+                        <strong class="col-lg-2">Nombre de places</strong>
+                        <span class="col-lg-10">
+
+                                <span t-field="session.seats"/>
+
+                        </span>
+                    </div>
+                    <div class="row mb-4">
+                        <strong class="col-lg-2">Date de début</strong>
+                        <span class="col-lg-10">
+
+                                <span t-field="session.start_date" t-options='{"widget": "date"}'/>
+
+                        </span>
+
+                    </div>
+                </t>
+            </t>
+
+        </t>
+    </template>
+
+
+    <template id="portal_my_details">
+
+     <t t-call="portal.portal_layout">
+            <t t-set="additional_title">Session Edit</t>
+            <form action="/my/session/edit/done/" method="post">
+                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                <div class="row o_portal_details">
+                    <div class="col-lg-8">
+                        <div class="row">
+                                <input type="hidden" name="ses_id" class="form-control " t-att-value="session.id"/>
+                            <div class="form-group  col-xl-6">
+                                <label class="col-form-label" for="name">Name</label>
+                                <input type="text" name="name" class="form-control " t-att-value="session.name"/>
+                            </div>
+
+                            <div class="form-group  col-xl-6">
+                                <label class="col-form-label" for="duration">Duration</label>
+                                <input type="number" name="duration" t-attf-class="form-control" t-att-value="session.duration" />
+                            </div>
+
+                            <div class="clearfix" />
+                           <div class="form-group  col-xl-6">
+                                <label class="col-form-label" for="seats">Seats</label>
+                                <input type="number" name="seats" t-attf-class="form-control" t-att-value="session.seats" />
+                            </div>
+                           <div class="form-group  col-xl-6">
+                                <label class="col-form-label" for="seats">Start date</label>
+                                <input type="date" name="start_date" t-attf-class="form-control" t-att-value="session.start_date" />
+                            </div>
+
+                        <div class="clearfix">
+                            <button type="submit" class="btn btn-primary float-right mb32 ">
+                                Confirm
+                                <span class="fa fa-long-arrow-right" />
+                            </button>
+
+                        </div>
+                    </div>
+                </div>
+                </div>
+            </form>
+        </t>
+    </template>
+
 </odoo>

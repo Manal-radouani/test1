@@ -1,21 +1,46 @@
 # -*- coding: utf-8 -*-
-# from odoo import http
+from odoo import http
+from odoo.http import request
 
 
-# class Openacademy(http.Controller):
-#     @http.route('/academy/academy/', auth='public')
-#     def index(self, **kw):
-#         return "Hello, world"
+class Academy(http.Controller):
+    @http.route(['/my/', '/my/home/'], auth='public', website=True)
+    def index(self, **kw):
+        Partners = http.request.env['res.partner']
+        return http.request.render('academy.portal_my_home', {
+            'partners': Partners.search([])
+        })
 
-#     @http.route('/academy/academy/objects/', auth='public')
-#     def list(self, **kw):
-#         return http.request.render('academy.listing', {
-#             'root': '/academy/academy',
-#             'objects': http.request.env['academy.academy'].search([]),
-#         })
+    @http.route('/my/<model("res.partner"):partner>/', auth='public', website=True)
+    def partner(self, partner):
+        sessions = list(partner.session_ins)
+        return http.request.render('academy.portal_session', {
+            'session': sessions
+        })
 
-#     @http.route('/academy/academy/objects/<model("academy.academy"):obj>/', auth='public')
-#     def object(self, obj, **kw):
-#         return http.request.render('academy.object', {
-#             'object': obj
-#         })
+    @http.route(['/my/session/<model("academy.session"):session>/'], auth='user', website=True)
+    def session(self, session):
+        return http.request.render('academy.session_details', {
+            'session': session
+        })
+
+    @http.route(['/my/session/edit/<model("academy.session"):session>/'], auth='user', website=True)
+    def edit(self, session):
+        return http.request.render('academy.portal_my_details', {
+            'session': session
+        })
+
+    @http.route(['/my/session/edit/done/'], auth='user', website=True)
+    def confirm(self, ses_id, **kw):
+        session = http.request.env['academy.session'].search([('id', '=', ses_id)])
+
+        session.name = kw['name']
+        session.duration = kw['duration']
+        session.start_date = kw['start_date']
+        session.seats = kw['seats']
+
+        return http.request.redirect('/my/home')
+
+
+
+

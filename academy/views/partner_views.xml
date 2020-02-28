@@ -12,6 +12,8 @@
                         <group>
                             <field name="instructor"/>
                             <field name="session_ids"/>
+                            <field name="biography"/>
+
                         </group>
                     </page>
                 </notebook>
