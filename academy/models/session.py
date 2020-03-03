@@ -15,7 +15,12 @@ class Session(models.Model):
     seats = fields.Integer(string="Number of seats")
     active = fields.Boolean(default=True)
     color = fields.Integer()
+    date = fields.Date(required=True, default=fields.Date.context_today)
+    price_per_hour = fields.Integer(help="Price")  # new
+    total = fields.Integer(help="total", compute='calc_total')  # new
 
+    price_session = fields.Float(string="Price for Session")
+    total_price_sessions = fields.Float(string="Total")
     instructor_id = fields.Many2one('res.partner', string="Instructor",
                                     domain=['|', ('instructor', '=', True),
                                             ('category_id.name', 'ilike', "Teacher")])
@@ -28,6 +33,15 @@ class Session(models.Model):
                            compute='_get_end_date', inverse='_set_end_date')
     attendees_count = fields.Integer(string="Attendees count", compute='_get_attendees_count', store=True)
     biography = fields.Html()
+    # Workflow
+    state = fields.Selection([
+        ('draft', "DRAFT"),
+        ('confirm', "CONFIRM"),
+        ('validate', "VALIDATE"),
+    ], default='draft', string='State')
+    button_clicked = fields.Boolean(string='Button clicked')
+    invoice_ids = fields.One2many("account.move", "session_id")
+    invoice_count = fields.Integer(string="count invoice", compute="_compute_invoice_count")
 
     @api.depends('seats', 'attendee_ids')
     def _taken_seats(self):
@@ -56,8 +70,6 @@ class Session(models.Model):
             # Compute the difference between dates, but: Friday - Monday = 4 days,
             # so add one day to get 5 days instead
             r.duration = (r.end_date - r.start_date).days + 1
-
-
 
     @api.depends('attendee_ids')
     def _get_attendees_count(self):
@@ -91,3 +103,105 @@ class Session(models.Model):
         for r in self:
             if r.instructor_id and r.instructor_id in r.attendee_ids:
                 raise exceptions.ValidationError("A session's instructor can't be an attendee")
+
+    def level1(self):
+        self.state = 'l1'
+
+    def level2(self):
+        self.state = 'l2'
+
+    def level3(self):
+        self.state = 'l3'
+
+    def brouillon_progressbar(self):
+        self.write({
+            'state': 'brouillon'
+        })
+
+    def confirm_progressbar(self):
+        self.write({
+            'state': 'confirm'
+        })
+
+    def facturer(self):
+        id_product_template = self.env['product.template'].search([('name', 'ilike', 'Session')]).id
+        id_product_product = self.env['product.product'].search([('product_tmpl_id', '=', id_product_template)]).id
+
+        self.button_clicked = True
+
+        data = {
+            'session_id': self.id,
+            'partner_id': self.instructor_id.id,
+            'type': 'in_invoice',
+            # 'partner_shipping_id': self.instructor_id.address,
+            'invoice_date': self.date,
+            "invoice_line_ids": [],
+        }
+
+        line = {
+            "name": self.name,
+            "product_id": id_product_product,
+            "quantity": self.duration,
+            "price_unit": self.price_per_hour,
+
+        }
+        data["invoice_line_ids"].append((0, 0, line))
+        invoice = self.env['account.move'].create(data)
+
+
+    def action_view_invoice(self):
+        invoices = self.mapped('invoice_ids')
+        action = self.env.ref('account.action_move_out_invoice_type').read()[0]
+        if len(invoices) > 1:
+            action['domain'] = [('id', 'in', invoices.ids)]
+        elif len(invoices) == 1:
+            form_view = [(self.env.ref('account.view_move_form').id, 'form')]
+            if 'views' in action:
+                action['views'] = form_view + [(state, view) for state, view in action['views'] if view != 'form']
+            else:
+                action['views'] = form_view
+            action['res_id'] = invoices.id
+        else:
+            action = {'type': 'ir.actions.act_window_close'}
+
+        context = {
+            'default_type': 'out_invoice',
+        }
+
+        action['context'] = context
+        return action
+
+    # This function is triggered when the user clicks on the button 'Done'
+    def validate_progressbar(self):
+        self.write({
+            'state': 'validate',
+        })
+
+    def calc_total(self):
+        self.total = self.duration * self.price_per_hour
+
+    def action_draft(self):
+        self.state = 'draft'
+
+    def action_confirm(self):
+        self.state = 'confirmed'
+
+    def action_done(self):
+        self.state = 'done'
+
+    def _compute_invoice_count(self):
+        self.invoice_count = self.env['account.move'].search_count([('session_id', '=', self.id)])
+
+    def _calc_total_sessions(self):
+        self.total_price_sessions = sum(self.price_session)
+
+    def _calculate_total(self):
+        # bundle = self.total_price_sessions
+        # self.lst_price = 0.0
+        # for each in bundle:
+        #     self.lst_price += each.tm_sum
+        for order in self:
+            comm_total = 10
+            for line in self.total_price_sessions:
+                comm_total += line.price_session
+            order.update({'total_price_sessions': comm_total})

@@ -5,7 +5,31 @@
             <field name="model">academy.session</field>
             <field name="arch" type="xml">
                 <form string="Session Form">
+                    <header>
+                        <!--<button name="level1" type="object" class="oe_highlight" string="Ajouter au brouillon"
+                                attrs="{'invisible': [('state', '=', 'valide')]}"></button>
+                        <button name="level2" type="object" class="oe_highlight" string="En cours"
+                                attrs="{'invisible': [('state', '=', 'valide')]}"></button>
+                        <button name="level3" type="object" class="oe_highlight" string="Confirmer"
+                                attrs="{'invisible': [('state', '=', 'valide')]}"></button>
+                        <field name="state" widget="statusbar" nolabel="1"></field> -->
+
+                        <button string="Facturer" class="oe_highlight" name="facturer" type="object"
+                                attrs="{'invisible': ['|',('button_clicked', '=', True), ('state', '!=', 'validate')]}"></button>
+	                    <button string="CONFIRM" type="object" name="confirm_progressbar" class="oe_highlight"
+                                attrs="{'invisible': ['|',('state', '=', 'validate'),('state', '=', 'confirm')]}"/>
+                        <button string="VALIDATE" type="object" name="validate_progressbar" class="oe_highlight"
+                                attrs="{'invisible': ['|',('state', '=', 'draft'),('state', '=', 'validate')]}" />
+                        <field name="state" widget="statusbar"/>
+                        <field name="button_clicked" widget="statusbar"/>
+                    </header>
                     <sheet>
+                        <div class="oe_button_box" name="button_box">
+                            <button name="action_view_invoice" type="object" class="oe_stat_button"
+                                    icon="fa-pencil-square-o">
+                                <field name="invoice_count" widget="statinfo" string="Invoices"/>
+                            </button>
+                        </div>
                         <group>
                             <group string="General">
                                 <field name="course_id"/>
@@ -17,6 +41,7 @@
                             <group string="Schedule">
                                 <field name="start_date"/>
                                 <field name="duration"/>
+                                <field name="price_per_hour"/>
                                 <field name="seats"/>
                                 <field name="taken_seats" widget="progressbar"/>
                             </group>
@@ -43,6 +68,7 @@
                     <field name="course_id"/>
                     <field name="taken_seats" widget="progressbar"/>
                     <field name="duration" invisible="1"/>
+                    <field name="state" />
                 </tree>
             </field>
         </record>

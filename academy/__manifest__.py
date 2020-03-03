@@ -21,7 +21,7 @@
      'version': '0.1',
 
      # any module necessary for this one to work correctly
-     'depends': ['base', 'board', 'mail', 'website'],
+     'depends': ['base', 'board', 'mail', 'website', 'account'],
 
      # always loaded
      'data': [
@@ -33,6 +33,7 @@
         'views/session_board.xml',
         'reports.xml',
         'views/templates.xml',
+        'data/data.xml',
 
 
 
