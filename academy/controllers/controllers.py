@@ -40,7 +40,3 @@ class Academy(http.Controller):
         session.seats = kw['seats']
 
         return http.request.redirect('/my/home')
-
-
-
-

@@ -16,7 +16,6 @@ class Session(models.Model):
     active = fields.Boolean(default=True)
     color = fields.Integer()
     date = fields.Date(required=True, default=fields.Date.context_today)
-    price_per_hour = fields.Integer(help="Price")  # new
     total = fields.Integer(help="total", compute='calc_total')  # new
 
     price_session = fields.Float(string="Price for Session")
@@ -36,8 +35,8 @@ class Session(models.Model):
     # Workflow
     state = fields.Selection([
         ('draft', "DRAFT"),
-        ('confirm', "CONFIRM"),
-        ('validate', "VALIDATE"),
+        ('confirm', "IN PROGRESS"),
+        ('validate', "VALIDATED"),
     ], default='draft', string='State')
     button_clicked = fields.Boolean(string='Button clicked')
     invoice_ids = fields.One2many("account.move", "session_id")
@@ -126,6 +125,7 @@ class Session(models.Model):
     def facturer(self):
         id_product_template = self.env['product.template'].search([('name', 'ilike', 'Session')]).id
         id_product_product = self.env['product.product'].search([('product_tmpl_id', '=', id_product_template)]).id
+        price_session = self.env['product.template'].search([('name', 'ilike', 'Session')]).list_price
 
         self.button_clicked = True
 
@@ -142,12 +142,11 @@ class Session(models.Model):
             "name": self.name,
             "product_id": id_product_product,
             "quantity": self.duration,
-            "price_unit": self.price_per_hour,
+            "price_unit": price_session,
 
         }
         data["invoice_line_ids"].append((0, 0, line))
         invoice = self.env['account.move'].create(data)
-
 
     def action_view_invoice(self):
         invoices = self.mapped('invoice_ids')
