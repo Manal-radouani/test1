@@ -12,6 +12,7 @@
                     <header>
                     <button  name="facturer" type="object" string="Facturer" class="oe_highlight">
                     </button>
+                     <button string="Télécharger" name="print_invoices" type="object"/>
                     </header>
                 </xpath>
                 <div class="oe_button_box" name="button_box">
