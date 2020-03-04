@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from odoo import fields, models
+from odoo import fields, models, api, exceptions
 
 
 class Partner(models.Model):
@@ -25,7 +25,6 @@ class Partner(models.Model):
         id_product_template = self.env['product.template'].search([('name', 'ilike', 'Session')]).id
         price_session = self.env['product.template'].search([('name', 'ilike', 'Session')]).list_price
         id_product_product = self.env['product.product'].search([('product_tmpl_id', '=', id_product_template)]).id
-
         # self.button_clicked = True
         # data= les donnes envoyes au facturaion
         data = {
@@ -37,8 +36,19 @@ class Partner(models.Model):
         }
         list = []
         quantity = 0
+        is_validated = 0
+        is_invoiced = 0
         for line in self.session_ids:
-            quantity = quantity + line.duration
+            if line.state == "validate":
+                is_validated = is_validated + 1
+                quantity = quantity + line.duration
+                line.state = 'fact'
+
+        if len(self.session_ids) == 0:
+            raise exceptions.ValidationError("This customer has no session to invoice")
+        if is_validated == 0:
+            raise exceptions.ValidationError("This customer has no validated session ")
+
         line1 = {
             "product_id": id_product_product,
             "quantity": quantity,
@@ -48,7 +58,21 @@ class Partner(models.Model):
         for element in list:
             data["invoice_line_ids"].append((0, 0, element))
         invoice = self.env['account.move'].create(data)
-        # invoice1 = self.env['account.move'].create(line)
+        invoices = self.mapped('invoice_ids')
+        action = self.env.ref('account.action_move_out_invoice_type').read()[0]
+        form_view = [(self.env.ref('account.view_move_form').id, 'form')]
+        if 'views' in action:
+            action['views'] = form_view + [(state, view) for state, view in action['views'] if view != 'form']
+        else:
+            action['views'] = form_view
+        action['res_id'] = invoice.id
+
+        context = {
+            'default_type': 'out_invoice',
+        }
+
+        action['context'] = context
+        return action
 
     def facturer1(self):
         invoices = self.mapped('invoice_ids')

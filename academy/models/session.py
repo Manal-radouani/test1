@@ -37,6 +37,7 @@ class Session(models.Model):
         ('draft', "DRAFT"),
         ('confirm', "IN PROGRESS"),
         ('validate', "VALIDATED"),
+        ('fact', "INVOICED"),
     ], default='draft', string='State')
     button_clicked = fields.Boolean(string='Button clicked')
     invoice_ids = fields.One2many("account.move", "session_id")

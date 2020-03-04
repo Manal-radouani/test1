@@ -10,7 +10,7 @@
                 <h3>Documents</h3>
              <t t-foreach="partners" t-as="partner">
                 <a class="list-group-item list-group-item-action d-flex align-items-center justify-content-between"
-                   t-attf-href="/my/{{ slugg }}" title="Sessions">Sessions
+                   t-attf-href="/my/{{ slug(partner) }}" title="Sessions">Sessions
                    <span class="badge badge-secondary badge-pill">
                        <t t-esc="partner.num_ses"/>
                    </span>

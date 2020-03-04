@@ -4,11 +4,12 @@ from odoo.http import request
 
 
 class Academy(http.Controller):
-    @http.route(['/my/', '/my/home/'], auth='public', website=True)
+    @http.route(['/my/', '/my/home'], website=True, auth='user')
     def index(self, **kw):
         Partners = http.request.env['res.partner']
+        id_user = http.request.env.user.partner_id.id
         return http.request.render('academy.portal_my_home', {
-            'partners': Partners.search([])
+            'partners': Partners.search([('id', '=', id_user)])
         })
 
     @http.route('/my/<model("res.partner"):partner>/', auth='public', website=True)
