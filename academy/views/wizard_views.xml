@@ -18,6 +18,7 @@
                 </form>
             </field>
         </record>
+
     <!--action for wizard -->
         <act_window id="launch_session_wizard"
                     name="Add Attendees"

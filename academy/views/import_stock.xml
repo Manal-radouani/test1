@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+	<data>
+
+		<record id="wizard_import_chart" model="ir.ui.view">
+			<field name="name">import.inventory.form</field>
+			<field name="model">import.inventory</field>
+			<field name="arch" type="xml">
+				<form string="Import Chart Of Accounts" >
+                <group>
+                    <field name="File_select" filename="name"/>
+                </group>
+
+					<group>
+                    <field name="inventory_reference"/>
+                </group>
+
+					<group>
+                    <field name="location_id"/>
+                </group>
+
+
+
+					<footer>
+
+						<button string="Import" name="import_file"
+							type="object" class="oe_highlight" />
+						<button string="Cancel" class="oe_link" special="cancel" />
+					</footer>
+				</form>
+			</field>
+		</record>
+
+		<record id="bi_act_chart_of_account" model="ir.actions.act_window">
+			<field name="name">Import Inventory</field>
+			<field name="res_model">import.inventory</field>
+			<field name="view_mode">form</field>
+			<field name="view_id" ref="wizard_import_chart" />
+			<field name="target">new</field>
+		</record>
+		<menuitem
+    		id="menu_chart_of_account"
+    		action="bi_act_chart_of_account"
+    		name="Import Inventory"
+    		parent="stock.menu_stock_warehouse_mgmt"
+    		sequence="2"/>
+
+	</data>
+</odoo>

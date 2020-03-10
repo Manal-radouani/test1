@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import base64
+import csv
 
 from odoo import fields, models, api, exceptions
 
@@ -14,6 +16,7 @@ class Partner(models.Model):
     session_ins = fields.One2many('academy.session', 'instructor_id', string="Sessions")
     num_ses = fields.Integer(string="Number of sessions", compute='sessions')
     invoice_count = fields.Integer(string="count invoice", compute="_compute_invoice_count")
+    input_file = fields.Binary('/ma_facture.xlsx')
 
     def sessions(self):
         self.num_ses = len(self.session_ins)
